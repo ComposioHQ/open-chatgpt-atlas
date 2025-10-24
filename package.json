@@ -1,0 +1,33 @@
+{
+  "name": "atlas-browser-extension",
+  "version": "1.0.0",
+  "description": "Browser extension with sidebar chat using AI SDK",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.35",
+    "@ai-sdk/google": "^2.0.23",
+    "@ai-sdk/openai": "^2.0.53",
+    "@ai-sdk/react": "^1.0.10",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "ai": "^5.0.76",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.275",
+    "@types/node": "^24.9.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
