@@ -629,7 +629,7 @@ GUIDELINES:
             const result = await executeBrowserAction(funcName, funcArgs);
             
             // Wait longer after navigation actions for page to load
-            const isNavigationAction = ['navigate', 'open_web_browser', 'navigate_to', 'go_to', 'click', 'click_at', 'mouse_click'].includes(funcName);
+            const isNavigationAction = ['navigate', 'open_web_browser', 'navigate_to', 'go_to', 'click', 'click_at', 'mouse_click', 'go_back', 'back', 'go_forward', 'forward'].includes(funcName);
             if (isNavigationAction) {
               await new Promise(resolve => setTimeout(resolve, 2500)); // Wait 2.5 seconds for page to load
             } else {
@@ -945,22 +945,37 @@ GUIDELINES:
       
       case 'go_back':
       case 'back':
-        // Go back in browser history
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]?.id) {
-            chrome.tabs.goBack(tabs[0].id);
-          }
+        // Go back in browser history - properly async
+        return new Promise<any>((resolve) => {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]?.id) {
+              chrome.tabs.goBack(tabs[0].id);
+              // Add small delay for navigation to register
+              setTimeout(() => {
+                resolve({ success: true, message: 'Navigated back' });
+              }, 300);
+            } else {
+              resolve({ success: false, error: 'No active tab found' });
+            }
+          });
         });
-        return { success: true, message: 'Navigated back' };
-      
+
       case 'go_forward':
       case 'forward':
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]?.id) {
-            chrome.tabs.goForward(tabs[0].id);
-          }
+        // Go forward in browser history - properly async
+        return new Promise<any>((resolve) => {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]?.id) {
+              chrome.tabs.goForward(tabs[0].id);
+              // Add small delay for navigation to register
+              setTimeout(() => {
+                resolve({ success: true, message: 'Navigated forward' });
+              }, 300);
+            } else {
+              resolve({ success: false, error: 'No active tab found' });
+            }
+          });
         });
-        return { success: true, message: 'Navigated forward' };
       
       case 'search':
         // Navigate to Google search

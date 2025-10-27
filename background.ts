@@ -116,25 +116,29 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   }
 
   if (request.type === 'GET_PAGE_CONTEXT') {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-      if (tabs[0]?.id) {
-        try {
+    (async () => {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs[0]?.id) {
           await ensureContentScript(tabs[0].id);
           const response = await chrome.tabs.sendMessage(tabs[0].id, { type: 'GET_PAGE_CONTEXT' });
           sendResponse(response); // Return response directly, not wrapped
-        } catch (error) {
-          sendResponse({ success: false, error: (error as Error).message });
+        } else {
+          sendResponse({ success: false, error: 'No active tab found' });
         }
+      } catch (error) {
+        sendResponse({ success: false, error: (error as Error).message });
       }
-    });
+    })();
     return true;
   }
 
   // Execute action on page
   if (request.type === 'EXECUTE_ACTION') {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-      if (tabs[0]?.id) {
-        try {
+    (async () => {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs[0]?.id) {
           await ensureContentScript(tabs[0].id);
           const response = await chrome.tabs.sendMessage(tabs[0].id, {
             type: 'EXECUTE_ACTION',
@@ -150,11 +154,13 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             amount: request.amount
           });
           sendResponse(response);
-        } catch (error) {
-          sendResponse({ success: false, error: (error as Error).message });
+        } else {
+          sendResponse({ success: false, error: 'No active tab found' });
         }
+      } catch (error) {
+        sendResponse({ success: false, error: (error as Error).message });
       }
-    });
+    })();
     return true;
   }
 
@@ -256,13 +262,19 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
   // Navigate to URL
   if (request.type === 'NAVIGATE') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        chrome.tabs.update(tabs[0].id, { url: request.url }, () => {
+    (async () => {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs[0]?.id) {
+          await chrome.tabs.update(tabs[0].id, { url: request.url });
           sendResponse({ success: true, url: request.url });
-        });
+        } else {
+          sendResponse({ success: false, error: 'No active tab found' });
+        }
+      } catch (error) {
+        sendResponse({ success: false, error: (error as Error).message });
       }
-    });
+    })();
     return true;
   }
 
