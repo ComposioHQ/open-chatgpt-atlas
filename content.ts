@@ -496,45 +496,111 @@ function executePageAction(
         if (coordinates && destination) {
           const dragEl = document.elementFromPoint(coordinates.x, coordinates.y);
           const dropEl = document.elementFromPoint(destination.x, destination.y);
-          
+
           if (dragEl && dropEl) {
-            // Mouse down at source
-            dragEl.dispatchEvent(new MouseEvent('mousedown', {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              clientX: coordinates.x,
-              clientY: coordinates.y
-            }));
-            
-            // Drag event
-            dragEl.dispatchEvent(new DragEvent('dragstart', {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              clientX: coordinates.x,
-              clientY: coordinates.y
-            }));
-            
-            // Drop event at destination
-            dropEl.dispatchEvent(new DragEvent('drop', {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              clientX: destination.x,
-              clientY: destination.y
-            }));
-            
-            // Mouse up at destination
-            dropEl.dispatchEvent(new MouseEvent('mouseup', {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              clientX: destination.x,
-              clientY: destination.y
-            }));
-            
-            return { success: true, message: `Dragged from (${coordinates.x}, ${coordinates.y}) to (${destination.x}, ${destination.y})` };
+            try {
+              const dataTransfer = new DataTransfer();
+              dataTransfer.effectAllowed = 'all';
+
+              // Step 1: Mouse down at source
+              dragEl.dispatchEvent(new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: coordinates.x,
+                clientY: coordinates.y,
+                buttons: 1
+              }));
+
+              // Step 2: Drag start event
+              dragEl.dispatchEvent(new DragEvent('dragstart', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: coordinates.x,
+                clientY: coordinates.y,
+                dataTransfer: dataTransfer
+              }));
+
+              // Step 3: Simulate drag movement with mousemove events
+              // Calculate steps between source and destination
+              const steps = 10;
+              const stepX = (destination.x - coordinates.x) / steps;
+              const stepY = (destination.y - coordinates.y) / steps;
+
+              for (let i = 1; i <= steps; i++) {
+                const currentX = coordinates.x + stepX * i;
+                const currentY = coordinates.y + stepY * i;
+                const currentEl = document.elementFromPoint(currentX, currentY);
+
+                // Mouse move
+                if (currentEl) {
+                  currentEl.dispatchEvent(new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: currentX,
+                    clientY: currentY,
+                    buttons: 1
+                  }));
+
+                  // Drag over
+                  currentEl.dispatchEvent(new DragEvent('dragover', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: currentX,
+                    clientY: currentY,
+                    dataTransfer: dataTransfer
+                  }));
+
+                  // Drag enter on first arrival
+                  if (i === 1 && currentEl !== dragEl) {
+                    currentEl.dispatchEvent(new DragEvent('dragenter', {
+                      bubbles: true,
+                      cancelable: true,
+                      view: window,
+                      clientX: currentX,
+                      clientY: currentY,
+                      dataTransfer: dataTransfer
+                    }));
+                  }
+                }
+              }
+
+              // Step 4: Drop at destination
+              dropEl.dispatchEvent(new DragEvent('drop', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: destination.x,
+                clientY: destination.y,
+                dataTransfer: dataTransfer
+              }));
+
+              // Step 5: Drag end on source
+              dragEl.dispatchEvent(new DragEvent('dragend', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: destination.x,
+                clientY: destination.y,
+                dataTransfer: dataTransfer
+              }));
+
+              // Step 6: Mouse up at destination
+              dropEl.dispatchEvent(new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: destination.x,
+                clientY: destination.y
+              }));
+
+              return { success: true, message: `Dragged from (${coordinates.x}, ${coordinates.y}) to (${destination.x}, ${destination.y})` };
+            } catch (error) {
+              return { success: false, message: `Drag and drop failed: ${error}` };
+            }
           }
           return { success: false, message: 'Could not find elements at drag or drop coordinates' };
         }

@@ -6,6 +6,68 @@ import type { Settings, MCPClient, Message } from './types';
 import { GeminiResponseSchema } from './types';
 import { stepCountIs } from 'ai';
 
+// Custom component to handle link clicks - opens in new tab
+const LinkComponent = ({ href, children }: { href?: string; children?: React.ReactNode }) => {
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+      chrome.tabs.create({ url: href });
+    }
+  };
+
+  return (
+    <a
+      href={href}
+      onClick={handleLinkClick}
+      style={{ color: '#2563eb', textDecoration: 'underline', cursor: 'pointer' }}
+      title={href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {children}
+    </a>
+  );
+};
+
+// Component to parse and display assistant messages with better formatting
+const MessageParser = ({ content }: { content: string }) => {
+  // Split message into logical sections - only on strong breaks (double newlines or numbered/bulleted lists)
+  const sections = content
+    .split(/\n\n+/)
+    .map((section) => section.trim())
+    .filter((section) => section.length > 0);
+
+  // If only one section or very short content, just return as-is
+  if (sections.length <= 1 || content.length < 150) {
+    return (
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: LinkComponent as any }}>
+        {content}
+      </ReactMarkdown>
+    );
+  }
+
+  // Display each section separately
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {sections.map((section, idx) => (
+        <div
+          key={idx}
+          style={{
+            padding: '10px 12px',
+            backgroundColor: '#2d2d2d',
+            borderLeft: '3px solid #4d4d4d',
+            borderRadius: '4px',
+          }}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: LinkComponent as any }}>
+            {section}
+          </ReactMarkdown>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function ChatSidebar() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -923,6 +985,7 @@ GUIDELINES:
     try {
       // Import streamText and provider SDKs
       const { streamText } = await import('ai');
+      const { z } = await import('zod');
 
       // Import the appropriate provider SDK (only Google is supported)
       const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
@@ -935,9 +998,43 @@ GUIDELINES:
         content: m.content
       }));
 
+      // Define browser history tool
+      const browserHistoryTool = {
+        getBrowserHistory: {
+          description: 'Get browser history. Useful for finding recently visited pages.',
+          parameters: z.object({
+            query: z.string().optional().describe('Search term to filter history (e.g., "github", "reddit")'),
+            maxResults: z.number().optional().describe('Maximum number of results (default: 20)'),
+            daysBack: z.number().optional().describe('How many days back to search (default: 7)'),
+          }),
+          execute: async ({ query = '', maxResults = 20, daysBack = 7 }: { query?: string; maxResults?: number; daysBack?: number }) => {
+            const startTime = Date.now() - (daysBack * 24 * 60 * 60 * 1000);
+            const result = await executeTool('getBrowserHistory', { query, maxResults, startTime });
+            
+            // Format the history results for better readability
+            if (result && result.history && Array.isArray(result.history)) {
+              const formatted = result.history.map((item: any) => {
+                const lastVisit = item.lastVisitTime ? new Date(item.lastVisitTime).toLocaleString() : 'Unknown';
+                return `• **${item.title || 'Untitled'}**\n  ${item.url}\n  Last visited: ${lastVisit}`;
+              }).join('\n\n');
+              
+              return `Found ${result.history.length} recent pages:\n\n${formatted}`;
+            }
+            
+            return result;
+          },
+        },
+      };
+
+      // Merge MCP tools with browser history tool
+      const allTools = {
+        ...tools,
+        ...browserHistoryTool,
+      };
+
         const result = streamText({
           model,
-          tools,
+          tools: allTools,
           messages: aiMessages,
           stopWhen: stepCountIs(20),
           abortSignal: abortControllerRef.current?.signal,
@@ -951,13 +1048,16 @@ GUIDELINES:
       };
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Stream the response
-      for await (const textPart of result.textStream) {
+      // Stream the response - collect full text without duplicates
+      let fullText = '';
+      for await (const chunk of result.textStream) {
+        fullText += chunk;
         setMessages(prev => {
           const updated = [...prev];
           const lastMsg = updated[updated.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.content += textPart;
+            // Only update if we've accumulated new text
+            lastMsg.content = fullText;
           }
           return updated;
         });
@@ -1303,9 +1403,7 @@ GUIDELINES:
               <div className="message-content">
                 {message.content ? (
                   message.role === 'assistant' ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {message.content}
-                    </ReactMarkdown>
+                    <MessageParser content={message.content} />
                   ) : (
                     message.content
                   )
