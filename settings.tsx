@@ -3,15 +3,6 @@ import { createRoot } from 'react-dom/client';
 import type { Settings } from './types';
 
 const PROVIDER_MODELS = {
-  openai: [
-    { id: 'gpt-4.1', name: 'GPT-4.1', description: 'Multimodal - Text, images, voice' },
-    { id: 'gpt-5', name: 'GPT-5', description: 'Latest GPT model' },
-  ],
-  anthropic: [
-    { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Latest Claude model' },
-    { id: 'claude-haiku-4-5-20251001', name: 'Claude Opus 4.1', description: 'Most capable Claude' },
-    { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', description: 'Balance of speed and capability' },
-  ],
   google: [
     { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: '1M token context' },
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Fast and efficient' },
@@ -21,9 +12,9 @@ const PROVIDER_MODELS = {
 
 function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
-    provider: 'openai',
+    provider: 'google',
     apiKey: '',
-    model: 'gpt-4.1',
+    model: 'gemini-2.5-pro',
     toolMode: 'tool-router',
     composioApiKey: '',
   });
@@ -44,14 +35,13 @@ function SettingsPage() {
     chrome.storage.local.set({ atlasSettings: settings }, () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    });
-  };
 
-  const handleProviderChange = (provider: 'openai' | 'anthropic' | 'google') => {
-    setSettings({
-      ...settings,
-      provider,
-      model: PROVIDER_MODELS[provider][0].id,
+      // Send message to sidebar to refresh
+      chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED' }, () => {
+        if (chrome.runtime.lastError) {
+          console.log('Sidebar not active, but settings saved');
+        }
+      });
     });
   };
 
@@ -65,18 +55,8 @@ function SettingsPage() {
       <div className="settings-content">
         <div className="setting-group">
           <label>AI Provider</label>
-          <div className="provider-buttons">
-            {(['openai', 'anthropic', 'google'] as const).map((provider) => (
-              <button
-                key={provider}
-                className={`provider-button ${settings.provider === provider ? 'active' : ''}`}
-                onClick={() => handleProviderChange(provider)}
-              >
-                {provider === 'openai' && 'OpenAI'}
-                {provider === 'anthropic' && 'Anthropic'}
-                {provider === 'google' && 'Google'}
-              </button>
-            ))}
+          <div className="provider-info">
+            <p>Google Gemini</p>
           </div>
         </div>
 
@@ -122,13 +102,13 @@ function SettingsPage() {
         </div>
 
         <div className="setting-group">
-          <label>{settings.provider.charAt(0).toUpperCase() + settings.provider.slice(1)} API Key</label>
+          <label>Google API Key</label>
           <div className="api-key-input-wrapper">
             <input
               type={showApiKey ? 'text' : 'password'}
               value={settings.apiKey}
               onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-              placeholder={`Enter your ${settings.provider.toUpperCase()} API key`}
+              placeholder="Enter your Google API key"
               className="api-key-input"
             />
             <button
@@ -141,21 +121,9 @@ function SettingsPage() {
           </div>
           <p className="help-text">
             Get your API key from:{' '}
-            {settings.provider === 'openai' && (
-              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
-                OpenAI Platform
-              </a>
-            )}
-            {settings.provider === 'anthropic' && (
-              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer">
-                Anthropic Console
-              </a>
-            )}
-            {settings.provider === 'google' && (
-              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
-                Google AI Studio
-              </a>
-            )}
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
+              Google AI Studio
+            </a>
           </p>
         </div>
 

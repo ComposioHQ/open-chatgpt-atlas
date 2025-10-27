@@ -184,21 +184,31 @@ body {
 }
 
 .save-button {
+  font-family: sans-serif;
+  font-size: 12px;
   width: 100%;
-  padding: 14px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: 12px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
   margin-top: 12px;
+  box-sizing: border-box;
+  -webkit-font-smoothing: inherit;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: auto;
+  opacity: 1;
 }
 
 .save-button:hover:not(:disabled) {
-  background: #1d4ed8;
+  background-color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.4);
 }
 
 .save-button:active:not(:disabled) {
@@ -211,7 +221,7 @@ body {
 }
 
 .save-button.saved {
-  background: #2563eb;
+  background-color: #000000;
 }
 
 .feature-cards {

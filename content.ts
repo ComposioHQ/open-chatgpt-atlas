@@ -159,24 +159,12 @@ function executePageAction(
           }
           return { success: false, message: `Element not found: ${selector || target}` };
         } else if (coordinates) {
-          console.log('🖱️ Attempting click at coordinates:', coordinates.x, coordinates.y);
-          console.log('📐 Viewport:', window.innerWidth, 'x', window.innerHeight);
-          console.log('📏 Device Pixel Ratio:', window.devicePixelRatio);
 
           const element = document.elementFromPoint(coordinates.x, coordinates.y);
-          console.log('🎯 Element at coordinates:', element?.tagName, element);
 
           if (element) {
             // Get element position for logging
             const rect = element.getBoundingClientRect();
-            console.log('📍 Element bounds:', {
-              left: rect.left,
-              top: rect.top,
-              right: rect.right,
-              bottom: rect.bottom,
-              width: rect.width,
-              height: rect.height
-            });
 
             // Dispatch full mouse event sequence
             ['mousedown', 'mouseup', 'click'].forEach(eventType => {
@@ -193,7 +181,6 @@ function executePageAction(
             // Visual feedback
             highlightElement(element, coordinates);
 
-            console.log('✅ Click dispatched successfully');
 
             return {
               success: true,
@@ -216,24 +203,20 @@ function executePageAction(
       case 'fill':
         if (value) {
           const textToType = value; // Capture value to preserve type narrowing
-          console.log('🖊️ Fill action - target:', target, 'value:', textToType);
           let element: HTMLElement | null = null;
 
           // Try to find element by selector if provided
           if (target && !target.includes(':focus')) {
             element = document.querySelector(target) as HTMLElement;
-            console.log('🔍 Found element by selector:', element);
           }
 
           // If no element found or selector was for focused elements, use the currently focused element
           if (!element) {
             element = document.activeElement as HTMLElement;
-            console.log('🎯 Using focused element:', element?.tagName, element);
           }
 
           if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' ||
                          element.getAttribute('contenteditable') === 'true')) {
-            console.log('✅ Using typeable element:', element.tagName);
 
             // Click the element first to ensure it receives focus
             const rect = element.getBoundingClientRect();
@@ -250,21 +233,17 @@ function executePageAction(
               });
               element!.dispatchEvent(event);
             });
-            console.log('🖱️ Clicked element to ensure focus');
 
             // Explicitly focus the element
             element.focus();
-            console.log('👆 Focused element');
 
             // Return a promise that resolves after a delay to ensure focus is established
             return new Promise<any>((resolve) => {
               setTimeout(() => {
                 // Verify element still has focus
                 const stillFocused = document.activeElement === element;
-                console.log('🔍 Element still focused after delay:', stillFocused);
 
                 if (!stillFocused) {
-                  console.log('⚠️ Re-focusing element...');
                   element!.focus();
                   // Add another small delay after re-focus
                   setTimeout(() => {
@@ -290,10 +269,8 @@ function executePageAction(
 
                     if (nativeInputValueSetter) {
                       nativeInputValueSetter.call(inputElement, textToType);
-                      console.log('✍️ Set value using native setter');
                     } else {
                       inputElement.value = textToType;
-                      console.log('✍️ Set value directly');
                     }
 
                     // Trigger all necessary events for React/Vue/Angular apps
@@ -303,14 +280,12 @@ function executePageAction(
                     inputElement.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', bubbles: true }));
                     inputElement.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
 
-                    console.log('📢 Dispatched events, final value:', inputElement.value);
 
                   } else if (element!.getAttribute('contenteditable') === 'true') {
                     // For contenteditable elements, clear and set text
                     element!.textContent = textToType;
                     element!.dispatchEvent(new Event('input', { bubbles: true }));
                     element!.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('✍️ Set contenteditable text');
                   }
 
                   resolve({
@@ -365,7 +340,6 @@ function executePageAction(
             return { success: false, message: 'No element has focus. Click on an input field first.' };
           }
 
-          console.log('⌨️ Keyboard typing into:', focusedEl.tagName, focusedEl.getAttribute('type'), 'text:', textToType);
 
           // Check if it's a typeable element
           const isInput = focusedEl.tagName === 'INPUT';
@@ -373,7 +347,6 @@ function executePageAction(
           const isContentEditable = focusedEl.getAttribute('contenteditable') === 'true';
 
           if (!isInput && !isTextarea && !isContentEditable) {
-            console.log('⚠️ Element is not typeable:', focusedEl.tagName);
             return { success: false, message: `Element ${focusedEl.tagName} is not typeable. Click on an input field first.` };
           }
 
@@ -586,21 +559,6 @@ function executePageAction(
         }
         return { success: false, message: 'Coordinates required for mouse_move action' };
 
-      case 'extract':
-        if (target) {
-          const elements = document.querySelectorAll(target);
-          const data = Array.from(elements).map(el => ({
-            text: el.textContent?.trim(),
-            html: el.innerHTML,
-            attributes: Array.from(el.attributes).reduce((acc, attr) => {
-              acc[attr.name] = attr.value;
-              return acc;
-            }, {} as Record<string, string>)
-          }));
-          return { success: true, data, count: elements.length };
-        }
-        return { success: false, message: 'Target selector required for extract action' };
-
       case 'screenshot':
         // This would need to be handled by the background script
         return { success: true, message: 'Screenshot request sent to background' };
@@ -658,11 +616,32 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   }
 });
 
-// Send page load event to background
-chrome.runtime.sendMessage({
-  type: 'PAGE_LOADED',
-  url: window.location.href,
-  title: document.title
-});
+/**
+ * Send page load event to background when DOM is fully ready
+ * Waits for DOM to be interactive before sending message to ensure
+ * all page data (links, forms, etc.) is available
+ */
+function sendPageLoadMessage() {
+  chrome.runtime.sendMessage({
+    type: 'PAGE_LOADED',
+    url: window.location.href,
+    title: document.title,
+    timestamp: Date.now()
+  }).catch(error => {
+    // Silently fail if background script is not available
+    // (might happen on restricted pages)
+    console.debug('Could not send PAGE_LOADED message:', error);
+  });
 
-console.log('Atlas content script loaded on:', window.location.href);
+  console.log('Atlas content script loaded on:', window.location.href);
+}
+
+// Wait for DOM to be ready before sending page load message
+// This prevents race conditions where page data isn't available yet
+if (document.readyState === 'loading') {
+  // DOM is still loading, wait for it
+  document.addEventListener('DOMContentLoaded', sendPageLoadMessage, { once: true });
+} else {
+  // DOM is already interactive or complete
+  sendPageLoadMessage();
+}

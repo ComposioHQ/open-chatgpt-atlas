@@ -102,8 +102,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       // Try to ping the content script
       await chrome.tabs.sendMessage(tabId, { type: 'PING' });
     } catch (error) {
-      // Content script not loaded, inject it
-      console.log('📥 Content script not loaded, injecting...');
       try {
         await chrome.scripting.executeScript({
           target: { tabId },
@@ -111,9 +109,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         });
         // Wait a bit for the script to initialize
         await new Promise(resolve => setTimeout(resolve, 200));
-        console.log('✅ Content script injected successfully');
       } catch (injectError) {
-        console.error('❌ Failed to inject content script:', injectError);
         throw injectError;
       }
     }
@@ -166,7 +162,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.type === 'TAKE_SCREENSHOT') {
     (async () => {
       try {
-        console.log('📸 Screenshot requested');
 
         // Define restricted protocols (but allow regular web pages)
         const restrictedProtocols = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'devtools://'];
@@ -190,14 +185,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           return;
         }
 
-        console.log('🪟 Current window ID:', currentWindow.id);
-        console.log('🪟 Window has', currentWindow.tabs.length, 'tabs');
-
-        // Log all tabs for debugging
-        currentWindow.tabs.forEach((tab, i) => {
-          console.log(`📑 Tab ${i}: ${tab.url?.substring(0, 50)} | active:${tab.active} | highlighted:${tab.highlighted}`);
-        });
-
         // Get the active AND highlighted tab (the one that's actually visible to the user)
         let activeTab = currentWindow.tabs.find(tab => tab.active === true && tab.highlighted === true);
 
@@ -212,14 +199,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           return;
         }
 
-        console.log('🎯 Active tab:', activeTab.url);
-        console.log('📍 Tab index:', activeTab.index, 'ID:', activeTab.id);
 
         // Check if the current tab is restricted
         if (isRestricted(activeTab.url)) {
-          console.log('⚠️ Current tab is restricted:', activeTab.url);
-          console.log('🔄 Auto-navigating to google.com...');
-
           // Navigate to google.com automatically
           if (activeTab.id) {
             await chrome.tabs.update(activeTab.id, { url: 'https://www.google.com' });
@@ -229,7 +211,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 
             // Get the updated tab
             const updatedTab = await chrome.tabs.get(activeTab.id);
-            console.log('✅ Navigated to:', updatedTab.url);
 
             // Update activeTab reference
             activeTab = updatedTab;
@@ -242,7 +223,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           }
         }
 
-        console.log('📷 Capturing screenshot from window:', currentWindow.id);
 
         // Ensure windowId is defined
         if (currentWindow.id === undefined) {
@@ -255,7 +235,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           quality: 80
         });
 
-        console.log('✅ Screenshot captured successfully, size:', dataUrl?.length || 0);
         sendResponse({ success: true, screenshot: dataUrl });
       } catch (error) {
         console.error('❌ Screenshot capture error:', error);
@@ -268,7 +247,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
           error: `Screenshot failed: ${errorMsg}`
         });
       }
-    })();
+    })().catch(err => {
+      // Handle unhandled promise rejections from the IIFE
+      console.error('[SCREENSHOT] Unhandled promise rejection:', err instanceof Error ? err.message : String(err));
+    });
     return true;
   }
 
@@ -284,46 +266,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     return true;
   }
 
-  // Execute Composio tool
-  if (request.type === 'EXECUTE_COMPOSIO_TOOL') {
-    // Store composio instance and execute
-    chrome.storage.local.get(['composioSession'], async (result) => {
-      if (result.composioSession) {
-        try {
-          const { executeComposioAction } = await import('./tools');
-          const response = await executeComposioAction(
-            result.composioSession.composio,
-            request.userId,
-            {
-              tool: request.toolName,
-              parameters: request.parameters
-            }
-          );
-          sendResponse({ success: true, result: response });
-        } catch (error) {
-          sendResponse({ success: false, error: (error as Error).message });
-        }
-      } else {
-        sendResponse({ success: false, error: 'Composio session not initialized' });
-      }
-    });
-    return true;
-  }
-
-  // Execute custom script
   if (request.type === 'EXECUTE_SCRIPT') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        chrome.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          func: (code) => eval(code),
-          args: [request.code]
-        }).then((results) => {
-          sendResponse({ success: true, results });
-        }).catch((error) => {
-          sendResponse({ success: false, error: error.message });
-        });
-      }
+    sendResponse({
+      success: false,
+      error: 'EXECUTE_SCRIPT is disabled for security reasons. Use content script messaging instead.'
     });
     return true;
   }
