@@ -1126,12 +1126,42 @@ GUIDELINES:
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let jsonBuffer = ''; // Accumulate all data for fallback parsing
+    let parsedAnyChunk = false; // Track if we successfully parsed any chunk
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        // Fallback: If no chunks were parsed (formatted JSON response), try parsing the entire buffer
+        if (!parsedAnyChunk && jsonBuffer.trim()) {
+          try {
+            let data = JSON.parse(jsonBuffer.trim());
+            // Handle array response format
+            if (Array.isArray(data) && data.length > 0) {
+              data = data[0];
+            }
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              setMessages(prev => {
+                const updated = [...prev];
+                const lastMsg = updated[updated.length - 1];
+                if (lastMsg && lastMsg.role === 'assistant') {
+                  lastMsg.content = text;
+                }
+                return updated;
+              });
+            }
+          } catch (e) {
+            console.warn('Failed to parse accumulated JSON buffer:', e);
+          }
+        }
+        break;
+      }
 
-      buffer += decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+      jsonBuffer += chunk; // Accumulate for fallback
+
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
 
@@ -1142,6 +1172,7 @@ GUIDELINES:
           const json = JSON.parse(line);
           const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) {
+            parsedAnyChunk = true;
             setMessages(prev => {
               const updated = [...prev];
               const lastMsg = updated[updated.length - 1];
@@ -1152,7 +1183,7 @@ GUIDELINES:
             });
           }
         } catch (e) {
-          // Skip invalid JSON
+          // Skip invalid JSON (expected for formatted responses)
         }
       }
     }
