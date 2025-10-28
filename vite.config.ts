@@ -47,10 +47,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        sidepanel: resolve(__dirname, 'sidepanel.html'),
-        settings: resolve(__dirname, 'settings.html'),
-        background: resolve(__dirname, 'background.ts'),
-        content: resolve(__dirname, 'content.ts'),
+        sidepanel: resolve(__dirname, 'public/sidepanel.html'),
+        settings: resolve(__dirname, 'public/settings.html'),
+        background: resolve(__dirname, 'src/scripts/background.ts'),
+        content: resolve(__dirname, 'src/scripts/content.ts'),
       },
       output: {
         entryFileNames: (chunkInfo) => {

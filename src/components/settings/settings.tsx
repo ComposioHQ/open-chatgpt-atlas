@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { Settings } from './types';
+import type { Settings } from '../../scripts/types';
 
 const PROVIDER_MODELS = {
   google: [

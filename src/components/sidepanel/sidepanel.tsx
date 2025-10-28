@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Settings, MCPClient, Message } from './types';
-import { GeminiResponseSchema } from './types';
+import type { Settings, MCPClient, Message } from '../../scripts/types';
+import { GeminiResponseSchema } from '../../scripts/types';
 import { stepCountIs } from 'ai';
 
 // Custom component to handle link clicks - opens in new tab
@@ -195,7 +195,7 @@ function ChatSidebar() {
           settingsHashRef.current = settingsHash;
 
           try {
-            const { initializeComposioToolRouter } = await import('./tools');
+            const { initializeComposioToolRouter } = await import('../../scripts/tools');
             const toolRouterSession = await initializeComposioToolRouter(
               result.atlasSettings.composioApiKey
             );
@@ -334,7 +334,7 @@ function ChatSidebar() {
     // Reinitialize Composio session if API key present
     if (settings?.composioApiKey) {
       try {
-        const { initializeComposioToolRouter } = await import('./tools');
+        const { initializeComposioToolRouter } = await import('../../scripts/tools');
         // Use unique, persistent user ID
         const toolRouterSession = await initializeComposioToolRouter(
           settings.composioApiKey

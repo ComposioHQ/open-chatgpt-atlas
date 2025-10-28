@@ -28,13 +28,13 @@
     "type": "module"
   },
   "side_panel": {
-    "default_path": "sidepanel.html"
+    "default_path": "public/sidepanel.html"
   },
   "action": {
     "default_title": "Open Atlas Sidebar",
     "default_icon": "icons/icon.png"
   },
-  "options_page": "settings.html",
+  "options_page": "public/settings.html",
   "icons": {
     "16": "icons/icon.png",
     "48": "icons/icon.png",
