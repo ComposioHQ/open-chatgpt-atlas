@@ -449,8 +449,8 @@ Contributions welcome! Please:
 
 ## References
 
+- [Composio Platform](https://composio.dev/?utm_source=Github&utm_medium=Youtube&utm_campaign=2025-11&utm_content=Atlas) - Intelligent tool routing for AI agents
 - [Composio Tool Router Documentation](https://docs.composio.dev/docs/tool-router/quick-start) - Learn how to use Tool Router to route tool calls across 500+ integrations
-- [Composio Platform](https://composio.dev) - Intelligent tool routing for AI agents
 - [Composio GitHub](https://github.com/composiohq) - Python and TS SDK
 - [ChatGPT Atlas](https://openai.com/index/introducing-chatgpt-atlas/) - OpenAI's browser automation AI agent
 - [Gemini Computer Use Model](https://blog.google/technology/google-deepmind/gemini-computer-use-model/) - Google's AI model for browser automation
