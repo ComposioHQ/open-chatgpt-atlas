@@ -103,3 +103,11 @@ Then reload the extension in Chrome after each change.
 - **[FAQ](./FAQ.md)** - Frequently asked questions and quick troubleshooting
 - **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Detailed troubleshooting guide for common issues
 
+## References
+
+- [Composio Platform](https://composio.dev/?utm_source=Github&utm_medium=Youtube&utm_campaign=2025-11&utm_content=Atlas) - Intelligent tool routing for AI agents
+- [Composio Tool Router Documentation](https://docs.composio.dev/docs/tool-router/quick-start) - Learn how to use Tool Router to route tool calls across 500+ integrations
+- [Composio GitHub](https://github.com/composiohq) - Python and TS SDK
+- [ChatGPT Atlas](https://openai.com/index/introducing-chatgpt-atlas/) - OpenAI's browser automation AI agent
+- [Gemini Computer Use Model](https://blog.google/technology/google-deepmind/gemini-computer-use-model/) - Google's AI model for browser automation
+- [Gemini API Documentation](https://ai.google.dev/gemini-api/docs/computer-use) - Official documentation for Gemini Computer Use
