@@ -4,6 +4,14 @@ node_modules/
 # Build output
 dist/
 build/
+out/
+
+# Electron
+electron-builder/
+release/
+*.exe
+*.dmg
+*.zip
 
 # Environment variables
 .env

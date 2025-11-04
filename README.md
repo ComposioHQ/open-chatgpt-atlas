@@ -2,7 +2,7 @@
 
 # Open ChatGPT Atlas
 
-Free Alternative to ChatGPT Atlas.
+An Open-Source Browser and Extension that brings the capabilities of ChatGPT Atlas to every browser, allowing you to take actions across 500+ apps and the browser.
 
 ![Atlas Demo](./atlas.gif)
 

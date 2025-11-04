@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Settings, MCPClient, Message } from './types';
 import { GeminiResponseSchema } from './types';
-import { stepCountIs } from 'ai';
+import { experimental_createMCPClient, stepCountIs } from 'ai';
 
 // Custom component to handle link clicks - opens in new tab
 const LinkComponent = ({ href, children }: { href?: string; children?: React.ReactNode }) => {
@@ -33,7 +33,7 @@ const LinkComponent = ({ href, children }: { href?: string; children?: React.Rea
 const MessageParser = ({ content }: { content: string }) => {
   // Split message into logical sections - only on strong breaks (double newlines or numbered/bulleted lists)
   const sections = content
-    .split(/\n\n+/)
+    .split(/\n+/)
     .map((section) => section.trim())
     .filter((section) => section.length > 0);
 
@@ -1264,7 +1264,6 @@ GUIDELINES:
               const storage = await chrome.storage.local.get(['composioToolRouterMcpUrl', 'composioSessionId', 'atlasSettings']);
               if (!storage.composioToolRouterMcpUrl || !storage.composioSessionId) return;
 
-              const { experimental_createMCPClient } = await import('ai');
               const { StreamableHTTPClientTransport } = await import('@modelcontextprotocol/sdk/client/streamableHttp.js');
               const composioApiKey = storage.atlasSettings?.composioApiKey;
 
