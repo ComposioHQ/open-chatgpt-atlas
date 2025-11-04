@@ -1,15 +1,14 @@
 <div align="center">
 
+![Banner](./assets/banner.png)
+
 # Open ChatGPT Atlas
 
 An Open-Source Browser and Extension that brings the capabilities of ChatGPT Atlas to every browser, allowing you to take actions across 500+ apps and the browser.
 
 ![Atlas Demo](./atlas.gif)
 
-[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=GoogleChrome)](https://chrome.google.com/webstore)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Gemini](https://img.shields.io/badge/Gemini-4285F4?logo=google)](https://ai.google.dev/)
-[![Composio](https://img.shields.io/badge/Composio-500%2B%20Tools-FF6B6B)](https://composio.dev)
+<a href="https://github.com/composiohq/open-chatgpt-atlas"><img alt="Star" src="https://img.shields.io/badge/⭐%20Star%20Us-GitHub-yellow?style=for-the-badge"></a>
 
 
 </div>
@@ -51,6 +50,27 @@ npm run build
    - Click "Load unpacked"
    - Select the `dist` folder
    - Open Settings (⚙️ icon) to configure your API keys
+
+### Running the Electron Browser
+
+The project includes a standalone Electron-based browser application with built-in Atlas capabilities.
+
+1. Build the Electron app:
+```bash
+npm run build:electron
+```
+
+2. Start the Electron browser:
+```bash
+npm run electron
+```
+
+3. Or, run in development mode with hot reload:
+```bash
+npm run electron:dev
+```
+
+The Electron browser will launch with the full Atlas functionality integrated, allowing you to use browser tools and tool routing directly from the desktop application.
 
 ### Configuration
 
