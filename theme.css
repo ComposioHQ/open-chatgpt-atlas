@@ -1,0 +1,77 @@
+:root {
+  /* light mode colors */
+  --bg-primary: #fafafa;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #fafafa;
+  --bg-hover: #f7f7f8;
+  --text-primary: #343541;
+  --text-secondary: #8e8ea0;
+  --text-inverted: #ffffff;
+  --border-primary: #e5e7eb;
+  --border-secondary: #d9d9e3;
+  --button-primary: #2c2c2c;
+  --button-hover: #3c3c3c;
+  --accent-color: #2563eb;
+  --scrollbar-thumb: #d9d9e3;
+  --scrollbar-thumb-hover: #c5c5d2;
+  --code-bg: #e5e7eb;
+  --code-block-bg: #1e293b;
+  --code-block-text: #e2e8f0;
+  --message-user-bg: #e5e7eb;
+  --message-assistant-bg: #e5e7eb;
+  --message-user-text: #343541;
+  --message-assistant-text: #343541;
+  --icon-button-bg: #f0f0f0;
+  --icon-button-hover: #e5e5e5;
+  --icon-button-text: #343541;
+  --stop-button-bg: #d1d5db;
+  --stop-button-hover: #9ca3af;
+  --stop-button-text: #374151;
+  --chat-input-bg: #f7f7f8;
+  --chat-input-hover: #ffffff;
+  --chat-input-focus: #ffffff;
+  --save-button-bg: #f0f0f0;
+  --info-box-bg: #eff6ff;
+  --info-box-border: #dbeafe;
+  --info-box-heading: #1e40af;
+  --info-box-text: #1e3a8a;
+}
+
+[data-theme="dark"] {
+  /* dark mode colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #333333;
+  --bg-hover: #333333;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-inverted: #000000;
+  --border-primary: #333333;
+  --border-secondary: #4d4d4d;
+  --button-primary: #f0f0f0;
+  --button-hover: #e0e0e0;
+  --accent-color: #2563eb;
+  --scrollbar-thumb: #444444;
+  --scrollbar-thumb-hover: #555555;
+  --code-bg: #333333;
+  --code-block-bg: #0d1117;
+  --code-block-text: #e6edf3;
+  --message-user-bg: #262626;
+  --message-assistant-bg: #262626;
+  --message-user-text: #ffffff;
+  --message-assistant-text: #ffffff;
+  --icon-button-bg: #000000;
+  --icon-button-hover: #1a1a1a;
+  --icon-button-text: #ffffff;
+  --stop-button-bg: #6b7280;
+  --stop-button-hover: #4b5563;
+  --stop-button-text: #ffffff;
+  --chat-input-bg: #262626;
+  --chat-input-hover: #333333;
+  --chat-input-focus: #333333;
+  --save-button-bg: #000000;
+  --info-box-bg: #1a2332;
+  --info-box-border: #1e3a5f;
+  --info-box-heading: #60a5fa;
+  --info-box-text: #93bbfc;
+}

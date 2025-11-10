@@ -54,8 +54,8 @@ const MessageParser = ({ content }: { content: string }) => {
           key={idx}
           style={{
             padding: '10px 12px',
-            backgroundColor: '#2d2d2d',
-            borderLeft: '3px solid #4d4d4d',
+            backgroundColor: 'var(--bg-secondary)',
+            borderLeft: '3px solid var(--border-secondary)',
             borderRadius: '4px',
           }}
         >
@@ -240,6 +240,34 @@ function ChatSidebar() {
       };
     }
   }, []);
+
+  // Apply theme whenever settings change
+  useEffect(() => {
+    if (!settings) return;
+
+    const applyTheme = () => {
+      let theme = settings.theme || 'system';
+
+      if (theme === 'system') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      document.documentElement.setAttribute('data-theme', theme);
+    };
+
+    applyTheme();
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (settings.theme === 'system') {
+        applyTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [settings?.theme]);
 
   const openSettings = () => {
     chrome.runtime.openOptionsPage();
@@ -1381,7 +1409,7 @@ GUIDELINES:
   }
 
   return (
-    <div className="chat-container dark-mode">
+    <div className="chat-container">
       <div className="chat-header">
         <div style={{ flex: 1 }}>
           <h1>Atlas</h1>
