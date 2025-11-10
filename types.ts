@@ -9,6 +9,7 @@ export interface Settings {
   model: string;
   toolMode?: ToolMode;
   composioApiKey?: string;
+  theme?: 'light' | 'dark' | 'system';
 }
 
 export interface ComposioSession {

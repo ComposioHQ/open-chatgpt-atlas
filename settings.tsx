@@ -17,6 +17,7 @@ function SettingsPage() {
     model: 'gemini-2.5-pro',
     toolMode: 'tool-router',
     composioApiKey: '',
+    theme: 'system',
   });
   const [saved, setSaved] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -26,10 +27,39 @@ function SettingsPage() {
     // Load settings from chrome.storage
     chrome.storage.local.get(['atlasSettings'], (result) => {
       if (result.atlasSettings) {
-        setSettings(result.atlasSettings);
+        setSettings({
+          ...result.atlasSettings,
+          theme: result.atlasSettings.theme || 'system',
+        });
       }
     });
   }, []);
+
+  // Apply theme on load and changes
+  useEffect(() => {
+    const applyTheme = () => {
+      let theme = settings.theme || 'system';
+
+      if (theme === 'system') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      document.documentElement.setAttribute('data-theme', theme);
+    };
+
+    applyTheme();
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (settings.theme === 'system') {
+        applyTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [settings.theme]);
 
   const handleSave = () => {
     chrome.storage.local.set({ atlasSettings: settings }, () => {
@@ -53,6 +83,30 @@ function SettingsPage() {
       </div>
 
       <div className="settings-content">
+        <div className="setting-group">
+          <label>Theme</label>
+          <div className="provider-buttons">
+            <button
+              className={`provider-button ${settings.theme === 'light' ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, theme: 'light' })}
+            >
+              ☀️ Light
+            </button>
+            <button
+              className={`provider-button ${settings.theme === 'dark' ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, theme: 'dark' })}
+            >
+              🌙 Dark
+            </button>
+            <button
+              className={`provider-button ${settings.theme === 'system' ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, theme: 'system' })}
+            >
+              💻 System
+            </button>
+          </div>
+        </div>
+
         <div className="setting-group">
           <label>AI Provider</label>
           <div className="provider-info">
